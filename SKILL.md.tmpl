@@ -1,0 +1,255 @@
+---
+name: fullstack
+version: 1.0.0
+description: |
+  快速无头浏览器，用于 QA 测试和站点内部测试。导航页面、交互元素、验证状态、
+  对比前后差异、截取带注释的截图、测试响应式布局、表单、上传、对话框，
+  并捕获 bug 证据。当被要求打开或测试站点、验证部署、内部测试用户流程、
+  或提交带截图的 bug 时使用。
+  同时按阶段建议相关的 fullstack 技能：头脑风暴 /office-hours；
+  战略 /plan-ceo-review；架构 /plan-eng-review；设计 /plan-design-review 或
+  /design-consultation；自动审查 /autoplan；调试 /investigate；QA /qa；
+  代码审查 /review；视觉审计 /design-review；发布 /ship；文档 /document-release；
+  回顾 /retro；第二意见 /codex；生产安全 /careful 或 /guard；
+  范围编辑 /freeze 或 /unfreeze。如果用户选择退出建议，停止并运行
+  fullstack-config set proactive false；如果他们重新加入，运行 fullstack-config set
+  proactive true。
+allowed-tools:
+  - Bash
+  - Read
+  - AskUserQuestion
+
+---
+
+{{PREAMBLE}}
+
+如果 `PROACTIVE` 是 `false`：在此会话期间不要主动建议其他 fullstack 技能。
+只运行用户明确调用的技能。此偏好通过 `fullstack-config` 跨会话持久保存。
+
+# fullstack browse: QA 测试与内部测试
+
+持久化无头 Chromium。首次调用自动启动（约 3 秒），之后每条命令约 100-200ms。
+空闲 30 分钟后自动关闭。状态在调用之间持久保存（cookies、标签页、会话）。
+
+{{BROWSE_SETUP}}
+
+## 重要说明
+
+- 通过 Bash 使用编译后的二进制文件：`$B <命令>`
+- 永远不要使用 `mcp__claude-in-chrome__*` 工具。它们既慢又不可靠。
+- 浏览器在调用之间持久保存 — cookies、登录会话和标签页会延续。
+- 对话框（alert/confirm/prompt）默认自动接受 — 不会锁定浏览器。
+- **显示截图：** 在 `$B screenshot`、`$B snapshot -a -o` 或 `$B responsive` 之后，
+  始终使用 Read 工具读取输出的 PNG 文件，以便用户可以看到它们。否则截图是不可见的。
+
+## QA 工作流程
+
+### 测试用户流程（登录、注册、结账等）
+
+```bash
+# 1. 前往页面
+$B goto https://app.example.com/login
+
+# 2. 查看可交互元素
+$B snapshot -i
+
+# 3. 使用引用填充表单
+$B fill @e3 "test@example.com"
+$B fill @e4 "password123"
+$B click @e5
+
+# 4. 验证是否成功
+$B snapshot -D              # diff 显示点击后发生了什么变化
+$B is visible ".dashboard"  # 断言仪表板出现了
+$B screenshot /tmp/after-login.png
+```
+
+### 验证部署 / 检查生产环境
+
+```bash
+$B goto https://yourapp.com
+$B text                          # 读取页面 — 能加载吗？
+$B console                       # 有 JS 错误吗？
+$B network                       # 有失败的请求吗？
+$B js "document.title"           # 标题正确吗？
+$B is visible ".hero-section"    # 关键元素存在吗？
+$B screenshot /tmp/prod-check.png
+```
+
+### 端到端内部测试功能
+
+```bash
+# 导航到功能页面
+$B goto https://app.example.com/new-feature
+
+# 截取带注释的截图 — 显示每个带标签的可交互元素
+$B snapshot -i -a -o /tmp/feature-annotated.png
+
+# 查找所有可点击的东西（包括 cursor:pointer 的 div）
+$B snapshot -C
+
+# 遍历流程
+$B snapshot -i          # 基线
+$B click @e3            # 交互
+$B snapshot -D          # 有什么变化？（统一 diff）
+
+# 检查元素状态
+$B is visible ".success-toast"
+$B is enabled "#next-step-btn"
+$B is checked "#agree-checkbox"
+
+# 交互后检查控制台错误
+$B console
+```
+
+### 测试响应式布局
+
+```bash
+# 快速：3 张截图（手机/平板/桌面）
+$B goto https://yourapp.com
+$B responsive /tmp/layout
+
+# 手动：特定视口
+$B viewport 375x812     # iPhone
+$B screenshot /tmp/mobile.png
+$B viewport 1440x900    # 桌面
+$B screenshot /tmp/desktop.png
+
+# 元素截图（裁剪到特定元素）
+$B screenshot "#hero-banner" /tmp/hero.png
+$B snapshot -i
+$B screenshot @e3 /tmp/button.png
+
+# 区域裁剪
+$B screenshot --clip 0,0,800,600 /tmp/above-fold.png
+
+# 仅视口（不滚动）
+$B screenshot --viewport /tmp/viewport.png
+```
+
+### 测试文件上传
+
+```bash
+$B goto https://app.example.com/upload
+$B snapshot -i
+$B upload @e3 /path/to/test-file.pdf
+$B is visible ".upload-success"
+$B screenshot /tmp/upload-result.png
+```
+
+### 测试带验证的表单
+
+```bash
+$B goto https://app.example.com/form
+$B snapshot -i
+
+# 空提交 — 检查验证错误是否出现
+$B click @e10                        # 提交按钮
+$B snapshot -D                       # diff 显示错误消息出现了
+$B is visible ".error-message"
+
+# 填写并重新提交
+$B fill @e3 "valid input"
+$B click @e10
+$B snapshot -D                       # diff 显示错误消失，成功状态
+```
+
+### 测试对话框（删除确认、提示）
+
+```bash
+# 在触发之前设置对话框处理
+$B dialog-accept              # 将自动接受下一个 alert/confirm
+$B click "#delete-button"     # 触发确认对话框
+$B dialog                     # 查看出现了什么对话框
+$B snapshot -D                # 验证项目已被删除
+
+# 对于需要输入的提示
+$B dialog-accept "my answer"  # 带文本接受
+$B click "#rename-button"     # 触发提示
+```
+
+### 测试认证页面（导入真实浏览器 cookies）
+
+```bash
+# 从真实浏览器导入 cookies（打开交互式选择器）
+$B cookie-import-browser
+
+# 或直接导入特定域名
+$B cookie-import-browser comet --domain .github.com
+
+# 现在测试认证页面
+$B goto https://github.com/settings/profile
+$B snapshot -i
+$B screenshot /tmp/github-profile.png
+```
+
+### 对比两个页面 / 环境
+
+```bash
+$B diff https://staging.app.com https://prod.app.com
+```
+
+### 多步骤链式操作（适用于长流程）
+
+```bash
+echo '[
+  ["goto","https://app.example.com"],
+  ["snapshot","-i"],
+  ["fill","@e3","test@test.com"],
+  ["fill","@e4","password"],
+  ["click","@e5"],
+  ["snapshot","-D"],
+  ["screenshot","/tmp/result.png"]
+]' | $B chain
+```
+
+## 快速断言模式
+
+```bash
+# 元素存在且可见
+$B is visible ".modal"
+
+# 按钮启用/禁用
+$B is enabled "#submit-btn"
+$B is disabled "#submit-btn"
+
+# 复选框状态
+$B is checked "#agree"
+
+# 输入框可编辑
+$B is editable "#name-field"
+
+# 元素获得焦点
+$B is focused "#search-input"
+
+# 页面包含文本
+$B js "document.body.textContent.includes('Success')"
+
+# 元素数量
+$B js "document.querySelectorAll('.list-item').length"
+
+# 特定属性值
+$B attrs "#logo"    # 以 JSON 返回所有属性
+
+# CSS 属性
+$B css ".button" "background-color"
+```
+
+## 快照系统
+
+{{SNAPSHOT_FLAGS}}
+
+## 命令参考
+
+{{COMMAND_REFERENCE}}
+
+## 技巧
+
+1. **导航一次，多次查询。** `goto` 加载页面；然后 `text`、`js`、`screenshot` 都立即访问已加载的页面。
+2. **首先使用 `snapshot -i`。** 查看所有可交互元素，然后通过引用点击/填充。无需猜测 CSS 选择器。
+3. **使用 `snapshot -D` 验证。** 基线 → 操作 → diff。精确查看发生了什么变化。
+4. **使用 `is` 进行断言。** `is visible .modal` 比解析页面文本更快更可靠。
+5. **使用 `snapshot -a` 作为证据。** 带注释的截图非常适合 bug 报告。
+6. **使用 `snapshot -C` 处理棘手的 UI。** 查找可访问性树遗漏的可点击 div。
+7. **操作后检查 `console`。** 捕获不会在视觉上显示的 JS 错误。
+8. **使用 `chain` 处理长流程。** 单条命令，无每步 CLI 开销。

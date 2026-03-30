@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# openclaw-repo-mode — 检测仓库模式: 独立开发 vs 协作开发
+# 用法: source <(openclaw-repo-mode)  → 设置 REPO_MODE 变量
+# 或:    openclaw-repo-mode           → 打印 REPO_MODE=... 行
+#
+# 检测启发式 (90 天窗口):
+#   独立开发 (solo):     最高贡献者 >= 80% 的提交
+#   协作开发 (collaborative): 最高贡献者 < 80%
+#
+# 覆盖: openclaw-config set repo_mode solo|collaborative
+# 缓存: ~/.openclaw/projects/$SLUG/repo-mode.json (7 天 TTL)
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# 直接计算 SLUG (避免 eval gstack-slug — 分支名可能包含 shell 元字符)
+REMOTE_URL=$(git remote get-url origin 2>/dev/null || true)
+if [ -z "$REMOTE_URL" ]; then
+  echo "REPO_MODE=unknown"
+  exit 0
+fi
+SLUG=$(echo "$REMOTE_URL" | sed 's|.*[:/]\([^/]*/[^/]*\)\.git$|\1|;s|.*[:/]\([^/]*/[^/]*\)$|\1|' | tr '/' '-')
+[ -z "${SLUG:-}" ] && { echo "REPO_MODE=unknown"; exit 0; }
+
+# 验证: 只允许已知值 (防止通过 source <(...) 进行 shell 注入)
+validate_mode() {
+  case "$1" in solo|collaborative|unknown) echo "$1" ;; *) echo "unknown" ;; esac
+}
+
+# 配置覆盖优先
+OVERRIDE=$("$SCRIPT_DIR/openclaw-config" get repo_mode 2>/dev/null || true)
+if [ -n "$OVERRIDE" ] && [ "$OVERRIDE" != "null" ]; then
+  echo "REPO_MODE=$(validate_mode "$OVERRIDE")"
+  exit 0
+fi
+
+# 检查缓存 (7 天 TTL)
+CACHE_DIR="$HOME/.openclaw/projects/$SLUG"
+CACHE_FILE="$CACHE_DIR/repo-mode.json"
+if [ -f "$CACHE_FILE" ]; then
+  CACHE_AGE=$(( $(date +%s) - $(stat -f %m "$CACHE_FILE" 2>/dev/null || stat -c %Y "$CACHE_FILE" 2>/dev/null || echo 0) ))
+  if [ "$CACHE_AGE" -lt 604800 ]; then  # 7 天 (秒)
+    MODE=$(grep -o '"mode":"[^"]*"' "$CACHE_FILE" | head -1 | cut -d'"' -f4)
+    [ -n "$MODE" ] && echo "REPO_MODE=$(validate_mode "$MODE")" && exit 0
+  fi
+fi
+
+# 从 git 历史计算 (90 天窗口)
+# 使用默认分支 (不是 HEAD) 以避免特性分支采样偏差
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/||' || true)
+# 回退: 尝试 origin/main, 然后 origin/master, 然后 HEAD
+if [ -z "$DEFAULT_BRANCH" ]; then
+  if git rev-parse --verify origin/main &>/dev/null; then
+    DEFAULT_BRANCH="origin/main"
+  elif git rev-parse --verify origin/master &>/dev/null; then
+    DEFAULT_BRANCH="origin/master"
+  else
+    DEFAULT_BRANCH="HEAD"
+  fi
+fi
+SHORTLOG=$(git shortlog -sn --since="90 days ago" --no-merges "$DEFAULT_BRANCH" 2>/dev/null)
+if [ -z "$SHORTLOG" ]; then
+  echo "REPO_MODE=unknown"
+  exit 0
+fi
+
+# 从所有作者计算 TOTAL (非截断) 以避免独立开发偏差
+TOTAL=$(echo "$SHORTLOG" | awk '{s+=$1} END {print s}')
+TOP=$(echo "$SHORTLOG" | head -1 | awk '{print $1}')
+AUTHORS=$(echo "$SHORTLOG" | wc -l | tr -d ' ')
+
+# 最小样本: 至少需要 5 次提交才能分类
+if [ "$TOTAL" -lt 5 ]; then
+  echo "REPO_MODE=unknown"
+  exit 0
+fi
+
+TOP_PCT=$(( TOP * 100 / TOTAL ))
+
+# 独立开发: 最高贡献者 >= 80% 的提交 (偶尔的外部 PR 不改变模式)
+if [ "$TOP_PCT" -ge 80 ]; then
+  MODE=solo
+else
+  MODE=collaborative
+fi
+
+# 原子缓存结果 (如果 ~/.openclaw 不可写则静默失败)
+mkdir -p "$CACHE_DIR" 2>/dev/null || true
+CACHE_TMP=$(mktemp "$CACHE_DIR/.repo-mode-XXXXXX" 2>/dev/null || true)
+if [ -n "$CACHE_TMP" ]; then
+  echo "{\"mode\":\"$MODE\",\"top_pct\":$TOP_PCT,\"authors\":$AUTHORS,\"total\":$TOTAL,\"computed\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > "$CACHE_TMP" 2>/dev/null && mv "$CACHE_TMP" "$CACHE_FILE" 2>/dev/null || rm -f "$CACHE_TMP" 2>/dev/null
+fi
+
+echo "REPO_MODE=$MODE"

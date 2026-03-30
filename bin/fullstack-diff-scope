@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# openclaw-diff-scope — 对比基础分支的变更范围分类
+# 用法: source <(openclaw-diff-scope main)  → 设置 SCOPE_FRONTEND=true SCOPE_BACKEND=false ...
+# 或:    openclaw-diff-scope main           → 打印 SCOPE_*=... 行
+set -euo pipefail
+
+BASE="${1:-main}"
+
+# 获取变更文件列表
+FILES=$(git diff "${BASE}...HEAD" --name-only 2>/dev/null || git diff "${BASE}" --name-only 2>/dev/null || echo "")
+
+if [ -z "$FILES" ]; then
+  echo "SCOPE_FRONTEND=false"
+  echo "SCOPE_BACKEND=false"
+  echo "SCOPE_PROMPTS=false"
+  echo "SCOPE_TESTS=false"
+  echo "SCOPE_DOCS=false"
+  echo "SCOPE_CONFIG=false"
+  exit 0
+fi
+
+FRONTEND=false
+BACKEND=false
+PROMPTS=false
+TESTS=false
+DOCS=false
+CONFIG=false
+
+while IFS= read -r f; do
+  case "$f" in
+    # 前端: CSS, 视图, 组件, 模板
+    *.css|*.scss|*.less|*.sass|*.pcss|*.module.css|*.module.scss) FRONTEND=true ;;
+    *.tsx|*.jsx|*.vue|*.svelte|*.astro) FRONTEND=true ;;
+    *.erb|*.haml|*.slim|*.hbs|*.ejs) FRONTEND=true ;;
+    *.html) FRONTEND=true ;;
+    tailwind.config.*|postcss.config.*) FRONTEND=true ;;
+    app/views/*|*/components/*|styles/*|css/*|app/assets/stylesheets/*) FRONTEND=true ;;
+
+    # Prompts: 提示构建器, 系统提示, 生成服务
+    *prompt_builder*|*generation_service*|*writer_service*|*designer_service*) PROMPTS=true ;;
+    *evaluator*|*scorer*|*classifier_service*|*analyzer*) PROMPTS=true ;;
+    *voice*.rb|*writing*.rb|*prompt*.rb|*token*.rb) PROMPTS=true ;;
+    app/services/chat_tools/*|app/services/x_thread_tools/*) PROMPTS=true ;;
+    config/system_prompts/*) PROMPTS=true ;;
+
+    # 测试
+    *.test.*|*.spec.*|*_test.*|*_spec.*) TESTS=true ;;
+    test/*|tests/*|spec/*|__tests__/*|cypress/*|e2e/*) TESTS=true ;;
+
+    # 文档
+    *.md) DOCS=true ;;
+
+    # 配置
+    package.json|package-lock.json|yarn.lock|bun.lockb) CONFIG=true ;;
+    Gemfile|Gemfile.lock) CONFIG=true ;;
+    *.yml|*.yaml) CONFIG=true ;;
+    .github/*) CONFIG=true ;;
+    requirements.txt|pyproject.toml|go.mod|Cargo.toml|composer.json) CONFIG=true ;;
+
+    # 后端: 其他所有代码 (排除已匹配的视图/组件)
+    *.rb|*.py|*.go|*.rs|*.java|*.php|*.ex|*.exs) BACKEND=true ;;
+    *.ts|*.js) BACKEND=true ;;  # 非组件 TS/JS 视为后端
+  esac
+done <<< "$FILES"
+
+echo "SCOPE_FRONTEND=$FRONTEND"
+echo "SCOPE_BACKEND=$BACKEND"
+echo "SCOPE_PROMPTS=$PROMPTS"
+echo "SCOPE_TESTS=$TESTS"
+echo "SCOPE_DOCS=$DOCS"
+echo "SCOPE_CONFIG=$CONFIG"

@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+# openclaw-analytics — 个人使用仪表盘，从本地 JSONL 读取数据
+#
+# 用法:
+#   openclaw-analytics          # 默认: 最近 7 天
+#   openclaw-analytics 7d       # 最近 7 天
+#   openclaw-analytics 30d      # 最近 30 天
+#   openclaw-analytics all      # 所有时间
+#
+# 环境变量覆盖 (用于测试):
+#   OPENCLAW_STATE_DIR  — 覆盖 ~/.openclaw 状态目录
+set -uo pipefail
+
+STATE_DIR="${OPENCLAW_STATE_DIR:-$HOME/.openclaw}"
+JSONL_FILE="$STATE_DIR/analytics/skill-usage.jsonl"
+
+# ─── 解析时间窗口 ───────────────────────────────────────
+WINDOW="${1:-7d}"
+case "$WINDOW" in
+  7d)  DAYS=7;  LABEL="最近 7 天" ;;
+  30d) DAYS=30; LABEL="最近 30 天" ;;
+  all) DAYS=0;  LABEL="所有时间" ;;
+  *)   DAYS=7;  LABEL="最近 7 天" ;;
+esac
+
+# ─── 检查数据 ──────────────────────────────────────────
+if [ ! -f "$JSONL_FILE" ]; then
+  echo "openclaw 使用 — 暂无数据"
+  echo ""
+  echo "启用遥测后，使用数据将显示在此"
+  echo "(openclaw-config set telemetry anonymous)。"
+  exit 0
+fi
+
+TOTAL_LINES="$(wc -l < "$JSONL_FILE" | tr -d ' ')"
+if [ "$TOTAL_LINES" = "0" ]; then
+  echo "openclaw 使用 — 暂无数据"
+  exit 0
+fi
+
+# ─── 按时间窗口过滤 ───────────────────────────────────
+if [ "$DAYS" -gt 0 ] 2>/dev/null; then
+  # 计算截止日期
+  if date -v-1d +%Y-%m-%d >/dev/null 2>&1; then
+    # macOS date
+    CUTOFF="$(date -v-${DAYS}d -u +%Y-%m-%dT%H:%M:%SZ)"
+  else
+    # GNU date
+    CUTOFF="$(date -u -d "$DAYS days ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "2000-01-01T00:00:00Z")"
+  fi
+  # 过滤: skill_run 事件 (新格式) 或基本 skill 事件 (旧格式, 无 event_type)
+  # 旧格式: {"skill":"X","ts":"Y","repo":"Z"} (无 event_type 字段)
+  # 新格式: {"event_type":"skill_run","skill":"X","ts":"Y",...}
+  FILTERED="$(awk -F'"' -v cutoff="$CUTOFF" '
+    /"ts":"/ {
+      # 跳过 hook_fire 事件
+      if (/"event":"hook_fire"/) next
+      # 跳过非 skill_run 新格式事件
+      if (/"event_type":"/ && !/"event_type":"skill_run"/) next
+      for (i=1; i<=NF; i++) {
+        if ($i == "ts" && $(i+1) ~ /^:/) {
+          ts = $(i+2)
+          if (ts >= cutoff) { print; break }
+        }
+      }
+    }
+  ' "$JSONL_FILE")"
+else
+  # 所有时间: 包含 skill_run 事件 + 旧格式基本事件, 排除 hook_fire
+  FILTERED="$(awk '/"ts":"/ && !/"event":"hook_fire"/' "$JSONL_FILE" | grep -v '"event_type":"upgrade_' 2>/dev/null || true)"
+fi
+
+if [ -z "$FILTERED" ]; then
+  echo "openclaw 使用 ($LABEL) — 未找到技能运行记录"
+  exit 0
+fi
+
+# ─── 按技能聚合 ──────────────────────────────────────
+# 提取技能名称并计数
+SKILL_COUNTS="$(echo "$FILTERED" | awk -F'"' '
+  /"skill":"/ {
+    for (i=1; i<=NF; i++) {
+      if ($i == "skill" && $(i+1) ~ /^:/) {
+        skill = $(i+2)
+        counts[skill]++
+        break
+      }
+    }
+  }
+  END {
+    for (s in counts) print counts[s], s
+  }
+' | sort -rn)"
+
+# 统计结果
+TOTAL="$(echo "$FILTERED" | wc -l | tr -d ' ')"
+SUCCESS="$(echo "$FILTERED" | grep -c '"outcome":"success"' || true)"
+SUCCESS="${SUCCESS:-0}"; SUCCESS="$(echo "$SUCCESS" | tr -d ' \n\r\t')"
+ERRORS="$(echo "$FILTERED" | grep -c '"outcome":"error"' || true)"
+ERRORS="${ERRORS:-0}"; ERRORS="$(echo "$ERRORS" | tr -d ' \n\r\t')"
+# 旧格式事件没有 outcome 字段 — 将它们计为成功
+NO_OUTCOME="$(echo "$FILTERED" | grep -vc '"outcome":' || true)"
+NO_OUTCOME="${NO_OUTCOME:-0}"; NO_OUTCOME="$(echo "$NO_OUTCOME" | tr -d ' \n\r\t')"
+SUCCESS=$(( SUCCESS + NO_OUTCOME ))
+
+# 计算成功率
+if [ "$TOTAL" -gt 0 ] 2>/dev/null; then
+  SUCCESS_RATE=$(( SUCCESS * 100 / TOTAL ))
+else
+  SUCCESS_RATE=100
+fi
+
+# ─── 计算总时长 ────────────────────────────────
+TOTAL_DURATION="$(echo "$FILTERED" | awk -F'[:,]' '
+  /"duration_s"/ {
+    for (i=1; i<=NF; i++) {
+      if ($i ~ /"duration_s"/) {
+        val = $(i+1)
+        gsub(/[^0-9.]/, "", val)
+        if (val+0 > 0) total += val
+      }
+    }
+  }
+  END { printf "%.0f", total }
+')"
+
+# 格式化时长
+TOTAL_DURATION="${TOTAL_DURATION:-0}"
+if [ "$TOTAL_DURATION" -ge 3600 ] 2>/dev/null; then
+  HOURS=$(( TOTAL_DURATION / 3600 ))
+  MINS=$(( (TOTAL_DURATION % 3600) / 60 ))
+  DUR_DISPLAY="${HOURS}h ${MINS}m"
+elif [ "$TOTAL_DURATION" -ge 60 ] 2>/dev/null; then
+  MINS=$(( TOTAL_DURATION / 60 ))
+  DUR_DISPLAY="${MINS}m"
+else
+  DUR_DISPLAY="${TOTAL_DURATION}s"
+fi
+
+# ─── 渲染输出 ───────────────────────────────────────────
+echo "openclaw 使用 ($LABEL)"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# 找到最大计数用于条形图缩放
+MAX_COUNT="$(echo "$SKILL_COUNTS" | head -1 | awk '{print $1}')"
+BAR_WIDTH=20
+
+echo "$SKILL_COUNTS" | while read -r COUNT SKILL; do
+  # 缩放条形图
+  if [ "$MAX_COUNT" -gt 0 ] 2>/dev/null; then
+    BAR_LEN=$(( COUNT * BAR_WIDTH / MAX_COUNT ))
+  else
+    BAR_LEN=1
+  fi
+  [ "$BAR_LEN" -lt 1 ] && BAR_LEN=1
+
+  # 构建条形图
+  BAR=""
+  i=0
+  while [ "$i" -lt "$BAR_LEN" ]; do
+    BAR="${BAR}█"
+    i=$(( i + 1 ))
+  done
+
+  # 计算该技能的平均时长
+  AVG_DUR="$(echo "$FILTERED" | awk -v skill="$SKILL" '
+    index($0, "\"skill\":\"" skill "\"") > 0 {
+      # 使用 "duration_s": 分割提取时长值
+      n = split($0, parts, "\"duration_s\":")
+      if (n >= 2) {
+        # parts[2] 以值开头, 例如 "142,"
+        gsub(/[^0-9.].*/, "", parts[2])
+        if (parts[2]+0 > 0) { total += parts[2]; count++ }
+      }
+    }
+    END { if (count > 0) printf "%.0f", total/count; else print "0" }
+  ')"
+
+  # 格式化平均时长
+  if [ "$AVG_DUR" -ge 60 ] 2>/dev/null; then
+    AVG_DISPLAY="$(( AVG_DUR / 60 ))m"
+  else
+    AVG_DISPLAY="${AVG_DUR}s"
+  fi
+
+  printf "  /%-20s %s  %d 次  (平均 %s)\n" "$SKILL" "$BAR" "$COUNT" "$AVG_DISPLAY"
+done
+
+echo ""
+echo "成功率: ${SUCCESS_RATE}% | 错误: ${ERRORS} | 总时长: ${DUR_DISPLAY}"
+echo "事件: ${TOTAL} 次技能运行"
