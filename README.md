@@ -49,12 +49,15 @@ git clone https://github.com/fixby/fullstsck.git $HOME/.openclaw/skills/fullstac
 cp -Rf ~/.openclaw/skills/fullstack .openclaw/skills/fullstack && rm -rf .openclaw/skills/fullstack/.git && cd .openclaw/skills/fullstack && ./setup
 ```
 
-**Windows PowerShell：**
+**Windows PowerShell（需要管理员权限创建符号链接）：**
 ```powershell
+# 以管理员身份运行 PowerShell
 Copy-Item -Recurse -Force "$HOME/.openclaw/skills/fullstack" ".openclaw/skills/fullstack"; Remove-Item -Recurse -Force ".openclaw/skills/fullstack/.git"; cd ".openclaw/skills/fullstack"; .\setup.ps1
 ```
 
 > 然后在此项目的 CLAUDE.md 中添加一个 "fullstack" 部分，说明使用 fullstack 的 /browse 技能进行所有网页浏览，永远不要使用 mcp__claude-in-chrome__* 工具，列出可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /careful, /freeze, /guard, /unfreeze。
+
+**Windows 符号链接说明：** Windows 上创建符号链接需要管理员权限。如果 `\setup.ps1` 无法创建符号链接，请以管理员身份运行 PowerShell 后再执行。
 
 真实文件会被提交到你的仓库（不是子模块），所以 `git clone` 就能工作。所有东西都放在 `.openclaw/` 里面。不会碰你的 PATH 或在后台运行任何东西。
 

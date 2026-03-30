@@ -1,114 +1,113 @@
-# FullStack Skills Windows 安装脚本
-# 使用方式: .\setup.ps1
+# FullStack Skills Windows Installation Script
+# Usage: .\setup.ps1
 
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $ErrorActionPreference = "Stop"
 
 $SourceDir = $PSScriptRoot
-if (-not $SourceDir) {
-    $SourceDir = Get-Location
+if ([string]::IsNullOrEmpty($SourceDir)) {
+    $SourceDir = $PWD.Path
 }
 
-Write-Host "FullStack Skills 安装脚本 (Windows)" -ForegroundColor Cyan
-Write-Host "======================================" -ForegroundColor Cyan
+Write-Host "FullStack Skills Installation Script (Windows)" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 检查 bun
-Write-Host "检查 bun..." -ForegroundColor Yellow
+# Check bun
+Write-Host "Checking bun..." -ForegroundColor Yellow
 $bunVersion = bun --version 2>$null
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "错误: 需要安装 bun" -ForegroundColor Red
-    Write-Host "安装命令: powershell -c ""irm bun.sh/install.ps1 | iex""" -ForegroundColor Yellow
+    Write-Host "Error: bun is required" -ForegroundColor Red
     exit 1
 }
-Write-Host "bun 已安装: $bunVersion" -ForegroundColor Green
+Write-Host "bun installed: $bunVersion" -ForegroundColor Green
 
-# 检查 Node.js (Windows 上必须)
-Write-Host "检查 Node.js..." -ForegroundColor Yellow
+# Check Node.js
+Write-Host "Checking Node.js..." -ForegroundColor Yellow
 $nodeVersion = node --version 2>$null
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "错误: Windows 上需要安装 Node.js (Bun 有 Playwright 管道 bug)" -ForegroundColor Red
-    Write-Host "安装地址: https://nodejs.org/" -ForegroundColor Yellow
+    Write-Host "Error: Node.js is required on Windows" -ForegroundColor Red
     exit 1
 }
-Write-Host "Node.js 已安装: $nodeVersion" -ForegroundColor Green
+Write-Host "Node.js installed: $nodeVersion" -ForegroundColor Green
 
-# 安装依赖
+# Install dependencies
 Write-Host ""
-Write-Host "安装依赖..." -ForegroundColor Yellow
+Write-Host "Installing dependencies..." -ForegroundColor Yellow
 bun install
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "依赖安装失败" -ForegroundColor Red
+    Write-Host "bun install failed" -ForegroundColor Red
     exit 1
 }
 
-# 构建 browse 二进制文件
+# Build browse binary
 Write-Host ""
-Write-Host "构建 browse 二进制文件..." -ForegroundColor Yellow
+Write-Host "Building browse binary..." -ForegroundColor Yellow
 bun run build
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "构建失败" -ForegroundColor Red
+    Write-Host "build failed" -ForegroundColor Red
     exit 1
 }
 
-# 检查 browse 二进制文件
+# Check browse binary
 $browseBin = Join-Path $SourceDir "browse\dist\browse.exe"
-if (-not (Test-Path $browseBin)) {
-    Write-Host "错误: browse 二进制文件未生成" -ForegroundColor Red
+if ([string]::IsNullOrEmpty($browseBin) -or -not (Test-Path $browseBin)) {
+    Write-Host "Error: browse binary not generated" -ForegroundColor Red
     exit 1
 }
-Write-Host "browse 二进制文件已构建: $browseBin" -ForegroundColor Green
+Write-Host "browse binary built successfully" -ForegroundColor Green
 
-# 创建符号链接到 ~/.openclaw/skills/fullstack
+# Create symlink (requires admin rights on Windows)
 $homeDir = $env:USERPROFILE
 $openClawSkills = Join-Path $homeDir ".openclaw\skills"
 $fullstackLink = Join-Path $openClawSkills "fullstack"
 
 Write-Host ""
-Write-Host "创建技能符号链接..." -ForegroundColor Yellow
+Write-Host "Creating skill symlink..." -ForegroundColor Yellow
 
-# 创建 ~/.openclaw/skills 目录
 if (-not (Test-Path $openClawSkills)) {
     New-Item -ItemType Directory -Path $openClawSkills -Force | Out-Null
 }
 
-# 移除已存在的目标（如果是符号链接或目录）
+$symlinkCreated = $false
 if (Test-Path $fullstackLink) {
-    $item = Get-Item $fullstackLink
-    if ($item.LinkType -eq "SymbolicLink") {
-        Remove-Item $fullstackLink -Force
+    $item = Get-Item $fullstackLink -ErrorAction SilentlyContinue
+    if ($null -ne $item -and $item.LinkType -eq "SymbolicLink") {
+        Write-Host "Symlink already exists: $fullstackLink" -ForegroundColor Green
+        $symlinkCreated = $true
     } else {
-        Write-Host "警告: $fullstackLink 已存在且不是符号链接，跳过" -ForegroundColor Yellow
+        Write-Host "Warning: $fullstackLink exists and is not a symlink" -ForegroundColor Yellow
+    }
+} else {
+    try {
+        New-Item -ItemType SymbolicLink -Path $fullstackLink -Target $SourceDir -Force -ErrorAction Stop | Out-Null
+        Write-Host "Symlink created: $fullstackLink" -ForegroundColor Green
+        $symlinkCreated = $true
+    } catch {
+        Write-Host "Note: Symlink requires admin rights on Windows" -ForegroundColor Yellow
+        Write-Host "To create symlink manually, run PowerShell as Administrator:" -ForegroundColor Yellow
+        Write-Host "  New-Item -ItemType SymbolicLink -Path '$fullstackLink' -Target '$SourceDir'" -ForegroundColor Gray
     }
 }
 
-# 创建符号链接
-New-Item -ItemType SymbolicLink -Path $fullstackLink -Target $SourceDir -Force | Out-Null
-Write-Host "已创建符号链接: $fullstackLink -> $SourceDir" -ForegroundColor Green
-
-# 验证 Playwright Chromium
+# Install Playwright Chromium
 Write-Host ""
-Write-Host "验证 Playwright Chromium..." -ForegroundColor Yellow
-try {
-    node -e "const { chromium } = require('playwright'); (async () => { await chromium.launch(); process.exit(0); })()" 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "Playwright Chromium 就绪" -ForegroundColor Green
-    } else {
-        Write-Host "安装 Playwright Chromium..." -ForegroundColor Yellow
-        bunx playwright install chromium
-    }
-} catch {
-    Write-Host "安装 Playwright Chromium..." -ForegroundColor Yellow
-    bunx playwright install chromium
+Write-Host "Installing Playwright Chromium..." -ForegroundColor Yellow
+bunx playwright install chromium 2>$null
+Write-Host "Playwright Chromium installed" -ForegroundColor Green
+
+Write-Host ""
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "FullStack Skills Installation Complete!" -ForegroundColor Green
+Write-Host ""
+
+if (-not $symlinkCreated) {
+    Write-Host "IMPORTANT: Run as Administrator to create symlink:" -ForegroundColor Yellow
+    Write-Host "  New-Item -ItemType SymbolicLink -Path '$fullstackLink' -Target '$SourceDir'" -ForegroundColor Gray
+    Write-Host ""
 }
 
-Write-Host ""
-Write-Host "======================================" -ForegroundColor Cyan
-Write-Host "FullStack Skills 安装完成!" -ForegroundColor Green
-Write-Host ""
-Write-Host "下一步:" -ForegroundColor Yellow
-Write-Host "1. 在你的项目中创建 .openclaw/skills/fullstack 符号链接:"
-Write-Host "   New-Item -ItemType SymbolicLink -Path ""你的项目\.openclaw\skills\fullstack"" -Target ""$homeDir\.openclaw\skills\fullstack"""
-Write-Host ""
-Write-Host "2. 在项目的 CLAUDE.md 中添加 fullstack 部分"
-Write-Host ""
-Write-Host "3. 运行 '/office-hours' 开始使用" -ForegroundColor Cyan
+Write-Host "Next Steps:" -ForegroundColor Yellow
+Write-Host "1. Create symlink in your project (optional)" -ForegroundColor White
+Write-Host "2. Add fullstack section to CLAUDE.md" -ForegroundColor White
+Write-Host "3. Run '/office-hours' to start" -ForegroundColor Cyan
