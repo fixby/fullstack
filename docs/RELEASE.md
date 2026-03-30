@@ -387,7 +387,7 @@ cd ~/.openclaw/skills/fullstack
 ```bash
 # 测试 1: 全新安装
 rm -rf ~/.openclaw/skills/fullstack
-git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack
+git clone https://github.com/fixby/fullstack.git ~/.openclaw/skills/fullstack
 cd ~/.openclaw/skills/fullstack
 ./setup
 
@@ -725,7 +725,7 @@ git checkout v1.0.1.0
 
 ```bash
 rm -rf ~/.openclaw/skills/fullstack
-git clone --branch v1.0.1.0 https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack
+git clone --branch v1.0.1.0 https://github.com/fixby/fullstack.git ~/.openclaw/skills/fullstack
 cd ~/.openclaw/skills/fullstack
 ./setup
 ```
