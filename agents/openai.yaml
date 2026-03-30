@@ -1,4 +1,0 @@
-interface:
-  display_name: "OpenClaw"
-  short_description: "Bundle of OpenClaw AI engineering skills"
-  default_prompt: "Use $openclaw to locate the bundled openclaw skills."

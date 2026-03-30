@@ -84,7 +84,7 @@ fullstack/
 
 ```bash
 # 克隆仓库
-git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack
+git clone https://github.com/fixby/fullstack.git ~/.openclaw/skills/fullstack
 
 # 进入目录
 cd ~/.openclaw/skills/fullstack

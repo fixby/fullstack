@@ -43,9 +43,9 @@ describe("openclaw-global-discover", () => {
     });
 
     test("SSH and HTTPS for same repo normalize to same URL", () => {
-      const ssh = normalizeRemoteUrl("git@github.com:fixby/fullstsck.git");
-      const https = normalizeRemoteUrl("https://github.com/fixby/fullstsck.git");
-      const httpsNoDotGit = normalizeRemoteUrl("https://github.com/fixby/fullstsck");
+      const ssh = normalizeRemoteUrl("git@github.com:fixby/fullstack.git");
+      const https = normalizeRemoteUrl("https://github.com/fixby/fullstack.git");
+      const httpsNoDotGit = normalizeRemoteUrl("https://github.com/fixby/fullstack");
       expect(ssh).toBe(https);
       expect(https).toBe(httpsNoDotGit);
     });

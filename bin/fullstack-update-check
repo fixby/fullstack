@@ -18,7 +18,7 @@ CACHE_FILE="$STATE_DIR/last-update-check"
 MARKER_FILE="$STATE_DIR/just-upgraded-from"
 SNOOZE_FILE="$STATE_DIR/update-snoozed"
 VERSION_FILE="$OPENCLAW_DIR/VERSION"
-REMOTE_URL="${OPENCLAW_REMOTE_URL:-https://raw.githubusercontent.com/fixby/fullstsck/main/VERSION}"
+REMOTE_URL="${OPENCLAW_REMOTE_URL:-https://raw.githubusercontent.com/fixby/fullstack/main/VERSION}"
 
 # ─── 强制标志 (为独立的 /fullstack-upgrade 清除缓存) ──
 if [ "${1:-}" = "--force" ]; then

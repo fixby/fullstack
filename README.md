@@ -41,7 +41,7 @@ brew install fixby/tap/fullstack
 
 **方式二：Git Clone**
 ```bash
-git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack
+git clone https://github.com/fixby/fullstack.git ~/.openclaw/skills/fullstack
 cd ~/.openclaw/skills/fullstack
 ./setup
 ```

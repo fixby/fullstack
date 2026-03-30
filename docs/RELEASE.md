@@ -347,7 +347,7 @@ gh release create v1.1.0.0 \
 
 ### 安装
 \`\`\`bash
-git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack
+git clone https://github.com/fixby/fullstack.git ~/.openclaw/skills/fullstack
 cd ~/.openclaw/skills/fullstack
 ./setup
 \`\`\`
