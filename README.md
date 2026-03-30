@@ -26,40 +26,137 @@
 
 **要求：** [OpenClaw](https://github.com/openclaw/openclaw)、[Git](https://git-scm.com/)、[Bun](https://bun.sh/) v1.0+、[Node.js](https://nodejs.org/)（仅 Windows）
 
-### 步骤 1：安装到你的机器
+### 安装方式选择
 
-打开 OpenClaw 并粘贴下面这条命令，OpenClaw 会完成剩下的工作。
+根据你的操作系统选择以下方式：
 
-**Linux/Mac/Git Bash：**
+---
+
+#### macOS
+
+**方式一：Homebrew（推荐）**
 ```bash
-git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack && cd ~/.openclaw/skills/fullstack && ./setup
+brew install fixby/tap/fullstack
+```
+
+**方式二：Git Clone**
+```bash
+git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack
+cd ~/.openclaw/skills/fullstack
+./setup
+```
+> **权限：** 无需管理员权限（安装到用户目录）
+
+---
+
+#### Linux
+
+**方式一：Git Clone**
+```bash
+git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack
+cd ~/.openclaw/skills/fullstack
+./setup
+```
+> **权限：** 无需管理员权限（安装到用户目录）
+
+---
+
+#### Windows WSL（Windows Subsystem for Linux）
+
+```bash
+git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack
+cd ~/.openclaw/skills/fullstack
+./setup
+```
+> **权限：** 无需管理员权限（Linux 环境）
+
+---
+
+#### Windows PowerShell
+
+```powershell
+git clone https://github.com/fixby/fullstsck.git $HOME/.openclaw/skills/fullstack
+cd $HOME/.openclaw/skills/fullstack
+.\setup.ps1
+```
+> **权限：** 普通用户即可（setup.ps1 会提示管理员权限需求）
+
+**注意：** 如果创建符号链接失败，需要以管理员身份运行 PowerShell：
+```powershell
+Start-Process powershell -Verb RunAs
+# 在新窗口中运行上面的安装命令
+```
+
+---
+
+#### Windows CMD
+
+```cmd
+git clone https://github.com/fixby/fullstsck.git %USERPROFILE%\.openclaw\skills\fullstack
+cd %USERPROFILE%\.openclaw\skills\fullstack
+setup.bat
+```
+> **权限：** 普通用户即可
+
+---
+
+#### WinGet（Windows 包管理器）
+
+```powershell
+winget install --id Fixby.FullStack -s https://github.com/fixby/fullstsck
+```
+> **权限：** 普通用户即可（需要 winget 已安装）
+
+---
+
+### 安装后配置
+
+安装 FullStack Skills 完成后，接着在 CLAUDE.md 中添加一个 "fullstack" 部分：
+
+```
+## fullstack
+使用 fullstack 的 /browse 进行所有网页浏览。永远不要使用 mcp__claude-in-chrome__* 工具。
+可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review,
+/design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse,
+/qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro,
+/investigate, /document-release, /autoplan, /careful, /freeze, /guard, /unfreeze。
+```
+
+### 添加到项目（可选）
+
+添加到你的仓库以便队友使用：
+
+**Linux/macOS/WSL：**
+```bash
+cp -Rf ~/.openclaw/skills/fullstack .openclaw/skills/fullstack
+rm -rf .openclaw/skills/fullstack/.git
+cd .openclaw/skills/fullstack
+./setup
 ```
 
 **Windows PowerShell：**
 ```powershell
-git clone https://github.com/fixby/fullstsck.git $HOME/.openclaw/skills/fullstack; cd $HOME/.openclaw/skills/fullstack; .\setup.ps1
+Copy-Item -Recurse -Force "$HOME/.openclaw/skills/fullstack" ".openclaw/skills/fullstack"
+Remove-Item -Recurse -Force ".openclaw/skills/fullstack/.git"
+cd ".openclaw/skills/fullstack"
+.\setup.ps1
 ```
-
-> 安装 FullStack Skills 完成后，接着在 CLAUDE.md 中添加一个 "fullstack" 部分，说明使用 fullstack 的 /browse 技能进行所有网页浏览，永远不要使用 mcp__claude-in-chrome__* 工具，并列出可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /autoplan, /careful, /freeze, /guard, /unfreeze。然后询问用户是否也想将 fullstack 添加到当前项目，以便队友也能使用。
-
-### 步骤 2：添加到你的仓库以便队友使用（可选）
-
-**Linux/Mac/Git Bash：**
-```bash
-cp -Rf ~/.openclaw/skills/fullstack .openclaw/skills/fullstack && rm -rf .openclaw/skills/fullstack/.git && cd .openclaw/skills/fullstack && ./setup
-```
-
-**Windows PowerShell（需要管理员权限创建符号链接）：**
-```powershell
-# 以管理员身份运行 PowerShell
-Copy-Item -Recurse -Force "$HOME/.openclaw/skills/fullstack" ".openclaw/skills/fullstack"; Remove-Item -Recurse -Force ".openclaw/skills/fullstack/.git"; cd ".openclaw/skills/fullstack"; .\setup.ps1
-```
-
-> 然后在此项目的 CLAUDE.md 中添加一个 "fullstack" 部分，说明使用 fullstack 的 /browse 技能进行所有网页浏览，永远不要使用 mcp__claude-in-chrome__* 工具，列出可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /careful, /freeze, /guard, /unfreeze。
-
-**Windows 符号链接说明：** Windows 上创建符号链接需要管理员权限。如果 `\setup.ps1` 无法创建符号链接，请以管理员身份运行 PowerShell 后再执行。
+> **权限：** 项目目录通常不需要管理员权限
 
 真实文件会被提交到你的仓库（不是子模块），所以 `git clone` 就能工作。所有东西都放在 `.openclaw/` 里面。不会碰你的 PATH 或在后台运行任何东西。
+
+### 权限说明
+
+| 操作系统 | 权限要求 | 说明 |
+|---------|---------|------|
+| macOS | 普通用户 | Homebrew 安装到 `/usr/local` 需要 sudo，但用户目录安装无需权限 |
+| Linux | 普通用户 | 安装到 `~/.openclaw/` 无需权限 |
+| WSL | 普通用户 | Linux 环境无需 Windows 管理员权限 |
+| Windows PowerShell | 普通用户* | 创建符号链接需要管理员权限（setup.ps1 会提示） |
+| Windows CMD | 普通用户 | 安装到用户目录无需权限 |
+| WinGet | 普通用户 | 自动处理权限 |
+
+**注意：** Windows 上创建符号链接默认需要管理员权限。如果 `setup.ps1` 提示权限错误，请以管理员身份运行 PowerShell。
 
 ## 看看它的效果
 
