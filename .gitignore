@@ -2,6 +2,7 @@
 node_modules/
 browse/dist/
 bin/fullstack-global-discover
+bin/fullstack-global-discover.exe
 .fullstack/
 .claude/skills/
 .agents/
