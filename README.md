@@ -30,11 +30,19 @@
 
 打开 OpenClaw 并粘贴下面这条命令，OpenClaw 会完成剩下的工作。
 
-> 安装 FullStack Skills：运行 **`git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack && cd ~/.openclaw/skills/fullstack && ./setup`**，然后在 CLAUDE.md 中添加一个 "fullstack" 部分，说明使用 fullstack 的 /browse 技能进行所有网页浏览，永远不要使用 mcp__claude-in-chrome__* 工具，并列出可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /autoplan, /careful, /freeze, /guard, /unfreeze。然后询问用户是否也想将 fullstack 添加到当前项目，以便队友也能使用。
+> 安装 FullStack Skills：运行 **`git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack && cd ~/.openclaw/skills/fullstack`**，
+> - **Linux/Mac/Git Bash：** 然后运行 **`./setup`**
+> - **Windows PowerShell：** 然后运行 **`.\setup.ps1`**
+>
+> 接着在 CLAUDE.md 中添加一个 "fullstack" 部分，说明使用 fullstack 的 /browse 技能进行所有网页浏览，永远不要使用 mcp__claude-in-chrome__* 工具，并列出可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /autoplan, /careful, /freeze, /guard, /unfreeze。然后询问用户是否也想将 fullstack 添加到当前项目，以便队友也能使用。
 
 ### 步骤 2：添加到你的仓库以便队友使用（可选）
 
-> 将 FullStack Skills 添加到此项目：运行 **`cp -Rf ~/.openclaw/skills/fullstack .openclaw/skills/fullstack && rm -rf .openclaw/skills/fullstack/.git && cd .openclaw/skills/fullstack && ./setup`**，然后在此项目的 CLAUDE.md 中添加一个 "fullstack" 部分，说明使用 fullstack 的 /browse 技能进行所有网页浏览，永远不要使用 mcp__claude-in-chrome__* 工具，列出可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /careful, /freeze, /guard, /unfreeze，并告诉 OpenClaw 如果 fullstack 技能不工作，运行 `cd .openclaw/skills/fullstack && ./setup` 来构建二进制文件并注册技能。
+> 将 FullStack Skills 添加到此项目：运行 **`cp -Rf ~/.openclaw/skills/fullstack .openclaw/skills/fullstack && rm -rf .openclaw/skills/fullstack/.git && cd .openclaw/skills/fullstack`**，
+> - **Linux/Mac/Git Bash：** 然后运行 **`./setup`**
+> - **Windows PowerShell：** 然后运行 **`.\setup.ps1`**
+>
+> 接着在此项目的 CLAUDE.md 中添加一个 "fullstack" 部分，说明使用 fullstack 的 /browse 技能进行所有网页浏览，永远不要使用 mcp__claude-in-chrome__* 工具，列出可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /careful, /freeze, /guard, /unfreeze，并告诉 OpenClaw 如果 fullstack 技能不工作，运行 `cd .openclaw/skills/fullstack && ./setup`（Linux/Mac）或 `.\setup.ps1`（Windows）来构建二进制文件并注册技能。
 
 真实文件会被提交到你的仓库（不是子模块），所以 `git clone` 就能工作。所有东西都放在 `.openclaw/` 里面。不会碰你的 PATH 或在后台运行任何东西。
 
@@ -134,9 +142,13 @@ FullStack Skills 是一个流程，而不是工具的集合。技能按照冲刺
 
 ## 故障排除
 
-**技能没有出现？** `cd ~/.openclaw/skills/fullstack && ./setup`
+**技能没有出现？**
+- **Linux/Mac:** `cd ~/.openclaw/skills/fullstack && ./setup`
+- **Windows:** `cd ~/.openclaw/skills/fullstack; .\setup.ps1`
 
-**`/browse` 失败？** `cd ~/.openclaw/skills/fullstack && bun install && bun run build`
+**`/browse` 失败？**
+- **Linux/Mac:** `cd ~/.openclaw/skills/fullstack && bun install && bun run build`
+- **Windows:** `cd ~/.openclaw/skills/fullstack; bun install; bun run build`
 
 **Windows 用户：** FullStack Skills 在 Windows 11 上通过 Git Bash 或 WSL 工作。除了 Bun 之外还需要 Node.js — Bun 在 Windows 上有 Playwright 管道传输的已知 bug（[bun#4253](https://github.com/oven-sh/bun/issues/4253)）。浏览服务器自动回退到 Node.js。确保 `bun` 和 `node` 都在你的 PATH 上。
 
