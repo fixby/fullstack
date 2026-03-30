@@ -2,25 +2,25 @@
 
 > "我觉得从去年12月以来我可能就没写过一行代码，这是一个极其巨大的变化。" — [Andrej Karpathy](https://fortune.com/2026/03/21/andrej-karpathy-openai-cofounder-ai-agents-coding-state-of-psychosis-openclaw/)，No Priors 播客，2026年3月
 
-当我听到 Karpathy 说这话时，我想知道他是怎么做到的。一个人怎么能像二十人的团队一样交付？Peter Steinberger 用 AI 代理基本上独自构建了 [OpenClaw](https://github.com/openclaw/openclaw) — 24.7万 GitHub 星标。革命已经到来。一个拥有正确工具的建设者可以比传统团队移动得更快。
+当我听到 Karpathy 说这话时，我在想：他是怎么做到的？一个人怎么可能像二十人的团队一样交付？Peter Steinberger 用 AI 代理基本上独自构建了 [OpenClaw](https://github.com/openclaw/openclaw) — 24.7万 GitHub 星标。革命已经到来。拥有正确工具的建设者，可以比传统团队移动得更快。
 
-**FullStack Skills 就是答案。** 一个 AI 代理技能集合，将你的 AI 助手变成一个虚拟工程团队 — 一个重新思考产品的 CEO，一个锁定架构的工程经理，一个发现 AI slop 的设计师，一个发现生产环境 bug 的审查者，一个打开真实浏览器的 QA 负责人，一个发布 PR 的发布工程师。二十个专家和八个强大工具，全部是斜杠命令，全部是 Markdown，全部免费，MIT 许可证。
+**FullStack Skills 就是答案。** 这是一套 AI 代理技能集合，把你的 AI 助手变成一个虚拟工程团队 — 有重新思考产品的 CEO，有锁定架构的工程经理，有发现 AI 废话的设计师，有发现生产环境 bug 的审查者，有打开真实浏览器的 QA 负责人，有发布 PR 的发布工程师。二十多个专家加八个强力工具，全是斜杠命令，全是 Markdown 文件，MIT 许可证，完全免费。
 
-这是一个开源软件工厂。每天使用它。Fork 它。改进它。让它成为你的。
+这是一个开源软件工厂。每天用它，Fork 它，改进它，让它成为你的。
 
-**适用人群：**
-- **创始人和 CEO** — 特别是那些仍然想交付的技术型创始人
-- **首次使用 AI 代理的用户** — 结构化的角色而不是空白提示
+**适合人群：**
+- **创始人和 CEO** — 特别是那些还想要亲自交付的技术型创始人
+- **首次使用 AI 代理的用户** — 结构化的角色而不是面对空白提示
 - **技术负责人和资深工程师** — 每个 PR 都有严格的审查、QA 和发布自动化
 
 ## 快速开始
 
 1. 安装 FullStack Skills（30秒 — 见下文）
-2. 运行 `/office-hours` — 描述你正在构建什么
+2. 运行 `/office-hours` — 描述你在构建什么
 3. 对任何功能想法运行 `/plan-ceo-review`
 4. 对任何有变更的分支运行 `/review`
 5. 在你的预发布 URL 上运行 `/qa`
-6. 到这里停止。你会知道这是否适合你。
+6. 到这里停下来。你会知道这适不适合你。
 
 ## 安装 — 30秒
 
@@ -28,33 +28,33 @@
 
 ### 步骤 1：安装到你的机器
 
-打开 OpenClaw 并粘贴这个。OpenClaw 会完成剩下的工作。
+打开 OpenClaw 并粘贴下面这条命令，OpenClaw 会完成剩下的工作。
 
-> 安装 FullStack Skills：运行 **`git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack && cd ~/.openclaw/skills/fullstack && ./setup`** 然后在 CLAUDE.md 中添加一个 "fullstack" 部分，说明使用 fullstack 的 /browse 技能进行所有网页浏览，永远不要使用 mcp__claude-in-chrome__* 工具，并列出可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /autoplan, /careful, /freeze, /guard, /unfreeze。然后询问用户是否也想将 fullstack 添加到当前项目，以便队友也能使用。
+> 安装 FullStack Skills：运行 **`git clone https://github.com/fixby/fullstsck.git ~/.openclaw/skills/fullstack && cd ~/.openclaw/skills/fullstack && ./setup`**，然后在 CLAUDE.md 中添加一个 "fullstack" 部分，说明使用 fullstack 的 /browse 技能进行所有网页浏览，永远不要使用 mcp__claude-in-chrome__* 工具，并列出可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /autoplan, /careful, /freeze, /guard, /unfreeze。然后询问用户是否也想将 fullstack 添加到当前项目，以便队友也能使用。
 
 ### 步骤 2：添加到你的仓库以便队友使用（可选）
 
-> 将 FullStack Skills 添加到此项目：运行 **`cp -Rf ~/.openclaw/skills/fullstack .openclaw/skills/fullstack && rm -rf .openclaw/skills/fullstack/.git && cd .openclaw/skills/fullstack && ./setup`** 然后在此项目的 CLAUDE.md 中添加一个 "fullstack" 部分，说明使用 fullstack 的 /browse 技能进行所有网页浏览，永远不要使用 mcp__claude-in-chrome__* 工具，列出可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /careful, /freeze, /guard, /unfreeze，并告诉 OpenClaw 如果 fullstack 技能不工作，运行 `cd .openclaw/skills/fullstack && ./setup` 来构建二进制文件并注册技能。
+> 将 FullStack Skills 添加到此项目：运行 **`cp -Rf ~/.openclaw/skills/fullstack .openclaw/skills/fullstack && rm -rf .openclaw/skills/fullstack/.git && cd .openclaw/skills/fullstack && ./setup`**，然后在此项目的 CLAUDE.md 中添加一个 "fullstack" 部分，说明使用 fullstack 的 /browse 技能进行所有网页浏览，永远不要使用 mcp__claude-in-chrome__* 工具，列出可用技能：/office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review, /design-consultation, /review, /ship, /land-and-deploy, /canary, /benchmark, /browse, /qa, /qa-only, /design-review, /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /careful, /freeze, /guard, /unfreeze，并告诉 OpenClaw 如果 fullstack 技能不工作，运行 `cd .openclaw/skills/fullstack && ./setup` 来构建二进制文件并注册技能。
 
-真实文件会被提交到你的仓库（不是子模块），所以 `git clone` 就能工作。一切都放在 `.openclaw/` 里面。不会触碰你的 PATH 或在后台运行任何东西。
+真实文件会被提交到你的仓库（不是子模块），所以 `git clone` 就能工作。所有东西都放在 `.openclaw/` 里面。不会碰你的 PATH 或在后台运行任何东西。
 
 ## 看看它的效果
 
 ```
 你：    我想为我的日历构建一个每日简报应用。
 你：    /office-hours
-OpenClaw：[询问痛点 — 具体例子，而不是假设]
+OpenClaw：[询问痛点 — 要具体例子，不要假设]
 
 你：    多个 Google 日历，有过时信息的事件，错误的地点。
-        准备工作需要很长时间，结果不够好...
+        准备工作需要很长时间，结果还是不够好...
 
-OpenClaw：我要对你的框架提出质疑。你说"每日简报应用"。
-        但你实际描述的是一个个人参谋长 AI。
-        [提取出 5 个你没意识到自己在描述的能力]
-        [挑战 4 个前提 — 你同意、不同意或调整]
+OpenClaw：我要质疑你的框架。你说"每日简报应用"。
+        但你实际描述的是一个私人参谋长 AI。
+        [提取出 5 个你没意识到的能力]
+        [挑战 4 个前提 — 你可以同意、不同意或调整]
         [生成 3 个实现方案及工作量估算]
         推荐：明天发布最窄的切入点，从真实使用中学习。
-        完整愿景是一个 3 个月的项目 — 从实际有效的每日简报开始。
+        完整愿景需要 3 个月 — 先从真正能用的每日简报开始。
         [编写设计文档 → 自动输入到下游技能]
 
 你：    /plan-ceo-review
@@ -77,7 +77,7 @@ OpenClaw：我要对你的框架提出质疑。你说"每日简报应用"。
         测试：42 → 51（+9 个新增）。PR：github.com/you/app/pull/42
 ```
 
-你说"每日简报应用"。代理说"你在构建一个参谋长 AI" — 因为它倾听你的痛点，而不是你的功能请求。八个命令，端到端。那不是一个副驾驶。那是一个团队。
+你说"每日简报应用"。代理说"你在构建一个参谋长 AI" — 因为它倾听你的痛点，而不是你的功能描述。八个命令，端到端。这不是副驾驶，这是一个团队。
 
 ## 冲刺流程
 
@@ -85,17 +85,17 @@ FullStack Skills 是一个流程，而不是工具的集合。技能按照冲刺
 
 **思考 → 规划 → 构建 → 审查 → 测试 → 发布 → 反思**
 
-每个技能输入到下一个。`/office-hours` 编写设计文档，`/plan-ceo-review` 读取它。`/plan-eng-review` 编写测试计划，`/qa` 接收它。`/review` 捕获 bug，`/ship` 验证它们已修复。没有任何东西会漏掉，因为每一步都知道之前发生了什么。
+每个技能衔接到下一个。`/office-hours` 编写设计文档，`/plan-ceo-review` 读取它。`/plan-eng-review` 编写测试计划，`/qa` 接收它。`/review` 捕获 bug，`/ship` 验证它们已修复。没有东西会漏掉，因为每一步都知道之前发生了什么。
 
 | 技能 | 你的专家 | 他们做什么 |
 |------|----------|-----------|
-| `/office-hours` | **办公时间** | 从这里开始。六个强制性问题，在你写代码之前重新框架你的产品。对你的框架提出质疑，挑战前提，生成实现替代方案。设计文档输入到每个下游技能。 |
+| `/office-hours` | **办公时间** | 从这里开始。六个引导性问题，在你写代码之前重新框架你的产品。质疑你的框架，挑战前提，生成实现替代方案。设计文档输入到每个下游技能。 |
 | `/plan-ceo-review` | **CEO / 创始人** | 重新思考问题。找到隐藏在请求中的 10 星产品。四种模式：扩展、选择性扩展、保持范围、缩减。 |
 | `/plan-eng-review` | **工程经理** | 锁定架构、数据流、图表、边缘情况和测试。将隐藏的假设暴露出来。 |
-| `/plan-design-review` | **高级设计师** | 对每个设计维度评分 0-10，解释 10 分是什么样子，然后编辑计划以达到目标。AI Slop 检测。交互式 — 每个设计选择一个 AskUserQuestion。 |
-| `/design-consultation` | **设计合伙人** | 从头构建完整的设计系统。研究领域，提出创意风险，生成真实的产品模型。 |
-| `/review` | **资深工程师** | 找到通过 CI 但在生产环境中爆炸的 bug。自动修复明显的问题。标记完整性差距。 |
-| `/investigate` | **调试器** | 系统性的根本原因调试。铁律：没有调查就没有修复。追踪数据流，测试假设，3 次失败修复后停止。 |
+| `/plan-design-review` | **高级设计师** | 对每个设计维度评分 0-10，解释 10 分是什么样子，然后编辑计划以达到目标。AI 废话检测。交互式 — 每个设计选择使用 AskUserQuestion。 |
+| `/design-consultation` | **设计合伙人** | 从头构建完整的设计系统。研究领域现状，提出创意风险，生成真实的产品模型。 |
+| `/review` | **资深工程师** | 找到通过 CI 但在生产环境中爆炸的 bug。自动修复明显的问题。标记完整性缺口。 |
+| `/investigate` | **调试器** | 系统性的根本原因调试。铁律：没有调查就没有修复。追踪数据流，测试假设，三次修复失败后停止。 |
 | `/design-review` | **会写代码的设计师** | 与 /plan-design-review 相同的审计，然后修复发现的问题。原子提交，前后截图。 |
 | `/qa` | **QA 负责人** | 测试你的应用，发现 bug，用原子提交修复它们，重新验证。为每个修复自动生成回归测试。 |
 | `/qa-only` | **QA 报告员** | 与 /qa 相同的方法论，但只报告。纯 bug 报告，不修改代码。 |
